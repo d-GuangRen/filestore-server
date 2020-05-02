@@ -40,3 +40,8 @@ func GetLastFileMetas(count int) []FileMeta {
 	// 截取指定长度返回
 	return metas[0:count]
 }
+
+// 删除文件元信息
+func RemoveFileMeta(fileSha1 string) {
+	delete(fileMetas, fileSha1)
+}
