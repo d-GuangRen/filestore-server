@@ -1,5 +1,6 @@
 package meta
 
+import "sort"
 
 // FileMeta: 文件元信息结构
 type FileMeta struct {
@@ -24,4 +25,18 @@ func UpdateFileMeta(fileMeta FileMeta) {
 // 通过sha1获取文件元信息
 func GetFileMeta(fileSha1 string) FileMeta {
 	return fileMetas[fileSha1]
+}
+
+func GetLastFileMetas(count int) []FileMeta {
+
+	// 将 map 转换为切片
+	var metas []FileMeta
+	for _, v := range fileMetas {
+		metas = append(metas, v)
+	}
+
+	// 对切片中数据进行排序
+	sort.Sort(ByUploadTime(metas))
+	// 截取指定长度返回
+	return metas[0:count]
 }

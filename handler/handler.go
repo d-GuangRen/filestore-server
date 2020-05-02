@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -78,5 +79,18 @@ func GetFileMetaHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Write(marshal)
+}
+
+func FileQueryHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+
+	count, _ := strconv.Atoi(r.Form.Get("limit"))
+	metas := meta.GetLastFileMetas(count)
+	marshal, err := json.Marshal(metas)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	w.Write(marshal)
 }
