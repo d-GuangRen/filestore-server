@@ -94,3 +94,26 @@ func FileQueryHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Write(marshal)
 }
+
+func DownloadHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+
+	fileSha1 := r.Form.Get("fileHash")
+	fileMeta := meta.GetFileMeta(fileSha1)
+
+	file, err := os.Open(fileMeta.Location)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer file.Close()
+
+	fileData, err := ioutil.ReadAll(file)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/octect-stream")
+	w.Header().Set("Content-Disposition", "attachment;filename=\"" + fileMeta.FileName + "\"")
+	w.Write(fileData)
+}
