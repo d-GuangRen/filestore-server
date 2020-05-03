@@ -1,6 +1,9 @@
 package meta
 
-import "sort"
+import (
+	"filestore-server/db"
+	"sort"
+)
 
 // FileMeta: 文件元信息结构
 type FileMeta struct {
@@ -19,12 +22,23 @@ func init() {
 
 // 新增/更新文件元信息
 func UpdateFileMeta(fileMeta FileMeta) {
-	fileMetas[fileMeta.FileSha1] = fileMeta
+	// fileMetas[fileMeta.FileSha1] = fileMeta
+	db.OnFileUploadFinished(fileMeta.FileSha1, fileMeta.FileName, fileMeta.FileSize, fileMeta.Location )
 }
 
 // 通过sha1获取文件元信息
 func GetFileMeta(fileSha1 string) FileMeta {
-	return fileMetas[fileSha1]
+	tableFile, err := db.GetFileMeta(fileSha1)
+	if err != nil {
+		panic(err)
+	}
+	result := FileMeta{
+		FileSha1: tableFile.FileHash,
+		FileName: tableFile.FileName.String,
+		FileSize: tableFile.FileSize.Int64,
+		Location: tableFile.FileAddr.String,
+	}
+	return result
 }
 
 func GetLastFileMetas(count int) []FileMeta {
