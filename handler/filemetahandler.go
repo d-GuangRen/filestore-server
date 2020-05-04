@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"filestore-server/db"
 	"filestore-server/meta"
 	"filestore-server/util"
 	"fmt"
@@ -23,6 +24,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		io.WriteString(w, string(fileData))
+
 	} else if r.Method == http.MethodPost {
 		// 接收上传文件流并存储到本地目录
 		file, header, err := r.FormFile("file")
@@ -57,7 +59,15 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		fileMeta.FileSha1 = util.FileSha1(newFile)
 		meta.UpdateFileMeta(fileMeta)
 
-		http.Redirect(w, r, "/file/upload/success", http.StatusFound)
+		r.ParseForm()
+		username := r.Form.Get("username")
+		status := db.OnUserFileUploadFinished(username, fileMeta.FileSha1, fileMeta.FileName, fileMeta.FileSize)
+		if !status {
+			w.Write([]byte("Upload Failed."))
+			return
+		}
+
+		http.Redirect(w, r, "/static/view/home.html", http.StatusFound)
 	}
 }
 
