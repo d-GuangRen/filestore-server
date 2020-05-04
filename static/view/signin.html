@@ -62,8 +62,8 @@
 
 <script lang="javascript">
     function onSignin() {
-        var username = document.getElementById('username');
-        var password = document.getElementById('password');
+        let username = document.getElementById('username');
+        let password = document.getElementById('password');
         $.ajax({
             url: "/user/signin",
             type: "POST",
@@ -72,11 +72,11 @@
                     alert(err);
             },
             success: function(body) {
-		if (body === "FAILED") {
-			alert("登录失败");
-			return;
-		}
-                var resp = JSON.parse(body);
+                if (body === "FAILED") {
+                    alert("登录失败");
+                    return;
+                }
+                let resp = JSON.parse(body);
                 localStorage.setItem("token", resp.data.Token)
                 localStorage.setItem("username", resp.data.Username)
                 window.location.href = resp.data.Location;

@@ -8,6 +8,10 @@ import (
 type TableUser struct {
 	Username string
 	Password string
+	Email string
+	Phone string
+	SignupAt string
+	Status int
 }
 // 用户注册
 func SignUp(username, password string) bool {
@@ -32,14 +36,14 @@ func SignUp(username, password string) bool {
 }
 
 func GetByUsername(username string) (*TableUser, error) {
-	stmt, err := mydb.DbConn().Prepare("select username, password from tbl_user where username = ?")
+	stmt, err := mydb.DbConn().Prepare("select username, password, signup_at from tbl_user where username = ?")
 	if err != nil {
 		return nil, err
 	}
 	defer stmt.Close()
 
 	result := TableUser{}
-	err = stmt.QueryRow(username).Scan(&result.Username, &result.Password)
+	err = stmt.QueryRow(username).Scan(&result.Username, &result.Password, &result.SignupAt)
 	if err != nil {
 		return nil, err
 	}

@@ -90,6 +90,42 @@ func SignInHandler (w http.ResponseWriter, r *http.Request) {
 	w.Write(respMsg.JSONBytes())
 }
 
+func UserInfoHandler(w http.ResponseWriter, r *http.Request) {
+
+	r.ParseForm()
+
+	username := r.Form.Get("username")
+	token := r.Form.Get("token")
+
+	// 验证token的有效性
+	if !isTokenValid(token) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	tableUser, err := db.GetByUsername(username)
+	if err != nil {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+	respMsg := util.RespMsg{
+		Code: 0,
+		Msg:  "OK",
+		Data: tableUser,
+	}
+	w.Write(respMsg.JSONBytes())
+}
+
+func isTokenValid(token string) bool {
+	if len(token) != 40 {
+		return false
+	}
+	// TODO: 判断token的时效性，是否过期
+	// TODO: 从数据库表tbl_user_token查询username对应的token信息
+	// TODO: 对比两个token是否一致
+	return true
+}
+
 func generateToken(username string) string {
 	// 40位字符:md5(username+timestamp+token_salt)+timestamp[:8]
 	ts := fmt.Sprintf("%x", time.Now().Unix())
