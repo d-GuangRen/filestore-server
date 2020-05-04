@@ -23,7 +23,7 @@ func init() {
 // 新增/更新文件元信息
 func UpdateFileMeta(fileMeta FileMeta) {
 	// fileMetas[fileMeta.FileSha1] = fileMeta
-	db.OnFileUploadFinished(fileMeta.FileSha1, fileMeta.FileName, fileMeta.FileSize, fileMeta.Location )
+	db.OnFileUploadFinished(fileMeta.FileSha1, fileMeta.FileName, fileMeta.FileSize, fileMeta.Location)
 }
 
 // 通过sha1获取文件元信息
@@ -37,6 +37,7 @@ func GetFileMeta(fileSha1 string) FileMeta {
 		FileName: tableFile.FileName.String,
 		FileSize: tableFile.FileSize.Int64,
 		Location: tableFile.FileAddr.String,
+		UploadAt: tableFile.CreateAt.Time.String(),
 	}
 	return result
 }

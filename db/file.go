@@ -11,12 +11,12 @@ type TableFile struct {
 	FileName sql.NullString
 	FileSize sql.NullInt64
 	FileAddr sql.NullString
+	CreateAt sql.NullTime
 } 
 
 func OnFileUploadFinished(fileSha1 string, filename string, fileSize int64, fileAddr string) bool {
 	conn := mydb.DbConn()
-	defer conn.Close()
-	
+
 	stmt, err := conn.Prepare("insert ignore into tbl_file (`file_sha1`, `file_name`, `file_size`, `file_addr`) values (?, ?, ?, ?)")
 	if err != nil {
 		fmt.Printf("Failed to prepare statement, err: %s", err.Error())
@@ -40,9 +40,8 @@ func OnFileUploadFinished(fileSha1 string, filename string, fileSize int64, file
 
 func GetFileMeta(fileHash string) (*TableFile, error) {
 	conn := mydb.DbConn()
-	defer conn.Close()
 
-	stmt, err := conn.Prepare("select file_sha1, file_addr, file_name, file_size from tbl_file where file_sha1 = ? and status = 1 limit 1")
+	stmt, err := conn.Prepare("select file_sha1, file_addr, file_name, file_size, create_at from tbl_file where file_sha1 = ? and status = 1 limit 1")
 	if err != nil {
 		fmt.Println(err.Error())
 		return nil, err
@@ -50,7 +49,7 @@ func GetFileMeta(fileHash string) (*TableFile, error) {
 	defer stmt.Close()
 
 	result := TableFile{}
-	err = stmt.QueryRow(fileHash).Scan(&result.FileHash, &result.FileAddr, &result.FileName, &result.FileSize)
+	err = stmt.QueryRow(fileHash).Scan(&result.FileHash, &result.FileAddr, &result.FileName, &result.FileSize, &result.CreateAt)
 	if err != nil {
 		fmt.Println(err.Error())
 		return nil, err

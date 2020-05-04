@@ -15,7 +15,7 @@ import (
 
 // 文件上传
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "GET" {
+	if r.Method == http.MethodGet {
 		// 返回上传的html页面
 		fileData, err := ioutil.ReadFile("./static/view/index.html")
 		if err != nil {
@@ -23,7 +23,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		io.WriteString(w, string(fileData))
-	} else if r.Method == "POST" {
+	} else if r.Method == http.MethodPost {
 		// 接收上传文件流并存储到本地目录
 		file, header, err := r.FormFile("file")
 		if err != nil {
