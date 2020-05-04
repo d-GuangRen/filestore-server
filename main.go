@@ -18,6 +18,7 @@ func main() {
 	http.HandleFunc("/file/delete", handler.DeleteHandler)
 
 	http.HandleFunc("/user/signup", handler.SignUpHandler)
+	http.HandleFunc("/user/signin", handler.SignInHandler)
 
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
