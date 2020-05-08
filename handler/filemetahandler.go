@@ -96,8 +96,13 @@ func FileQueryHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
 	count, _ := strconv.Atoi(r.Form.Get("limit"))
-	metas := meta.GetLastFileMetas(count)
-	marshal, err := json.Marshal(metas)
+	username := r.Form.Get("username")
+	userFiles, err := db.QueryUserFileMetas(username, count)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	marshal, err := json.Marshal(userFiles)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -173,3 +178,38 @@ func DeleteHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 }
+
+// 尝试秒传接口
+func TryFastUploadHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+
+	//// 解析请求参数
+	//username := r.Form.Get("username")
+	//fileHash := r.Form.Get("fileHash")
+	//fileName := r.Form.Get("fileName")
+	//fileSize := r.Form.Get("fileSize")
+	//
+	//// 从文件表中查询相同hash的文件记录
+	//fileMeta, err := meta.GetFileMeta(fileHash)
+	//if err != nil {
+	//	w.WriteHeader(http.StatusInternalServerError)
+	//	return
+	//}
+	//
+	//if fileMeta == nil {
+	//
+	//}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
