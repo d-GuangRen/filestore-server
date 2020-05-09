@@ -27,10 +27,10 @@ func UpdateFileMeta(fileMeta FileMeta) {
 }
 
 // 通过sha1获取文件元信息
-func GetFileMeta(fileSha1 string) (*FileMeta, error) {
+func GetFileMeta(fileSha1 string) (FileMeta, error) {
 	tableFile, err := db.GetFileMeta(fileSha1)
 	if err != nil {
-		return nil, err
+		return FileMeta{}, err
 	}
 	result := FileMeta{
 		FileSha1: tableFile.FileHash,
@@ -39,7 +39,7 @@ func GetFileMeta(fileSha1 string) (*FileMeta, error) {
 		Location: tableFile.FileAddr.String,
 		UploadAt: tableFile.CreateAt.Time.String(),
 	}
-	return &result, nil
+	return result, nil
 }
 
 func GetLastFileMetas(count int) []FileMeta {

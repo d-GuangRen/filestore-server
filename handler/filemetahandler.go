@@ -81,7 +81,7 @@ func GetFileMetaHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
 	fileHash := r.Form["fileHash"][0]
-	fileMeta := meta.GetFileMeta(fileHash)
+	fileMeta, _ := meta.GetFileMeta(fileHash)
 
 	marshal, err := json.Marshal(fileMeta)
 	if err != nil {
@@ -115,7 +115,7 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
 	fileSha1 := r.Form.Get("fileHash")
-	fileMeta := meta.GetFileMeta(fileSha1)
+	fileMeta, _ := meta.GetFileMeta(fileSha1)
 
 	file, err := os.Open(fileMeta.Location)
 	if err != nil {
@@ -152,7 +152,7 @@ func FileMetaUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	fileSha1 := r.Form.Get("fileHash")
 	filename := r.Form.Get("filename")
 
-	fileMeta := meta.GetFileMeta(fileSha1)
+	fileMeta, _ := meta.GetFileMeta(fileSha1)
 
 	fileMeta.FileName = filename
 	meta.UpdateFileMeta(fileMeta)
@@ -172,7 +172,7 @@ func DeleteHandler(w http.ResponseWriter, r *http.Request) {
 
 	fileHash := r.Form.Get("fileHash")
 
-	fileMeta := meta.GetFileMeta(fileHash)
+	fileMeta, _ := meta.GetFileMeta(fileHash)
 	os.Remove(fileMeta.Location)
 	meta.RemoveFileMeta(fileHash)
 
@@ -184,21 +184,42 @@ func TryFastUploadHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
 	//// 解析请求参数
-	//username := r.Form.Get("username")
-	//fileHash := r.Form.Get("fileHash")
-	//fileName := r.Form.Get("fileName")
-	//fileSize := r.Form.Get("fileSize")
-	//
-	//// 从文件表中查询相同hash的文件记录
-	//fileMeta, err := meta.GetFileMeta(fileHash)
-	//if err != nil {
-	//	w.WriteHeader(http.StatusInternalServerError)
-	//	return
-	//}
-	//
-	//if fileMeta == nil {
-	//
-	//}
+	username := r.Form.Get("username")
+	fileHash := r.Form.Get("fileHash")
+	fileName := r.Form.Get("fileName")
+	fileSize, _ := strconv.Atoi(r.Form.Get("fileSize"))
+
+	// 从文件表中查询相同hash的文件记录
+	fileMeta, err := meta.GetFileMeta(fileHash)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if fileMeta.FileSha1 == "" {
+		var msg = util.RespMsg{
+			Code: -1,
+			Msg:  "秒传失败，请访问普通上传接口",
+			Data: nil,
+		}
+		w.Write(msg.JSONBytes())
+		return
+	}
+
+	uploadSuccess := db.OnUserFileUploadFinished(username, fileHash, fileName, int64(fileSize))
+	if !uploadSuccess {
+		resp := util.RespMsg{
+			Code: -2,
+			Msg:  "秒传失败，请稍后重试",
+		}
+		w.Write(resp.JSONBytes())
+		return
+	}
+	resp := util.RespMsg{
+		Code: 0,
+		Msg:  "秒传成功",
+	}
+	w.Write(resp.JSONBytes())
 }
 
 
