@@ -1,11 +1,12 @@
 package handler
 
 import (
-	"filestore-server/util"
 	myCache "filestore-server/cache/reids"
+	"filestore-server/util"
 	"fmt"
 	"math"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 )
@@ -47,4 +48,35 @@ func InitialMultiPartUploadHandler(w http.ResponseWriter, r *http.Request) {
 	conn.Do("HSET", "MP_" + uploadInfo.UploadId, "fileSize", uploadInfo.FileSize)
 
 	w.Write(util.NewRespMsg(0, "OK", uploadInfo).JSONBytes())
+}
+
+// 分块上传
+func MultiPartUploadHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+
+	uploadId := r.Form.Get("uploadId")
+	chunkIndex := r.Form.Get("chunkIndex")
+
+	conn := myCache.RedisPool().Get()
+	defer conn.Close()
+
+	fileData, err := os.Create("/data/" + uploadId + "/" + chunkIndex)
+	if err != nil {
+		w.Write(util.NewRespMsg(-1, "Upload part failed", nil).JSONBytes())
+		return
+	}
+	defer fileData.Close()
+
+	buffer := make([]byte, 1024 * 1024)
+	for {
+		n, err := r.Body.Read(buffer)
+		fileData.Write(buffer[:n])
+		if err != nil {
+			break
+		}
+	}
+
+	conn.Do("HSET", "MP_" + uploadId, "chunkIndex_" + chunkIndex, 1)
+
+	w.Write(util.NewRespMsg(0, "OK", nil).JSONBytes())
 }
